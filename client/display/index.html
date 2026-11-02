@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>入力モニター</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 24px; background: #111827; color: white; }
+    .card { background: #1f2937; border-radius: 12px; padding: 16px; margin: 12px 0; }
+    canvas { width: 100%; max-width: 700px; height: 320px; background: white; touch-action: none; }
+  </style>
+</head>
+<body>
+  <h1>入力モニター</h1>
+  <p id="connection">接続中...</p>
+  <div class="card">📱 振る強度: <span id="shake">-</span></div>
+  <div class="card">🎤 マイク音量: <span id="voice">-</span></div>
+  <div class="card">✏️ 描画 <br><canvas id="canvas" width="700" height="320"></canvas></div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const connection = document.getElementById('connection');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    socket.on('connect', () => {
+      connection.textContent = '接続成功';
+      socket.emit('join-display');
+    });
+    socket.on('disconnect', () => connection.textContent = '切断');
+    socket.on('shake', data => document.getElementById('shake').textContent = data.strength.toFixed(2));
+    socket.on('voice', data => document.getElementById('voice').textContent = data.volume.toFixed(2));
+    socket.on('draw', data => {
+      const x = data.x * canvas.width;
+      const y = data.y * canvas.height;
+      if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(x, y); }
+      if (data.type === 'move') { ctx.lineTo(x, y); ctx.stroke(); }
+      if (data.type === 'end') { ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); }
+    });
+    socket.on('draw-clear', () => ctx.clearRect(0, 0, canvas.width, canvas.height));
+  </script>
+</body>
+</html>

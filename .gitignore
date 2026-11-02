@@ -147,3 +147,18 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+certs/
+
+# Node.js
+node_modules/
+*.pem
+
+# 環境変数・秘密情報
+.env
+.env.*
+
+
+# macOS
+.DS_Store
+*.key
